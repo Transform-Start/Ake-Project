@@ -22,7 +22,7 @@ export default function Home() {
         <div className={styles.grid}>
           <a href="https://nextjs.org/docs" className={styles.card}>
             <h3>Documentation &rarr;</h3>
-            <p>Testing projects how  to do it </p>
+            <p>Testing  </p>
           </a>
 
           <a href="https://nextjs.org/learn" className={styles.card}>
