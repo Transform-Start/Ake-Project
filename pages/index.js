@@ -1,65 +1,178 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
+import { compose, withProps } from "recompose"
+import {InfoWindow, withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
+import React, { Component } from 'react';
+import Geocode from "react-geocode";
+import * as parkData from "./data/testing.json";
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+Geocode.setApiKey("AIzaSyAPsKRXSoF9BZ9Sx0uXhtnMcx7osRa5OsI");
+Geocode.enableDebug();
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+class Home extends React.Component {
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Testing  </p>
-          </a>
+        state = {
+          address: '',
+          city: '',
+          area: '',
+          state: '',
+          zoom: 15,
+          height: 400,
+          mapPosition: {
+              lat: 0,
+              lng: 0,
+          },
+          markerPosition: {
+              lat: 0,
+              lng: 0,
+          }
+            }
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+            componentDidMount() {
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(position => {
+                      this.setState({
+                          mapPosition: {
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                          },
+                          markerPosition: {
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                          }
+                      },
+                          () => {
+                              Geocode.fromLatLng(position.coords.latitude, position.coords.longitude).then(
+                                  response => {
+                                      console.log(response)
+                                      const address = response.results[0].formatted_address,
+                                          addressArray = response.results[0].address_components,
+                                          city = this.getCity(addressArray),
+                                          area = this.getArea(addressArray),
+                                          state = this.getState(addressArray);
+                                      console.log('city', city, area, state);
+                                      this.setState({
+                                          address: (address) ? address : '',
+                                          area: (area) ? area : '',
+                                          city: (city) ? city : '',
+                                          state: (state) ? state : '',
+                                      })
+                                  },
+                                  error => {
+                                      console.error(error);
+                                  }
+                              );
+      
+                          })
+                  });
+              } else {
+                  console.error("Geolocation is not supported by this browser!");
+              }
+          };   
+             
+      getCity = (addressArray) => {
+        let city = '';
+        for (let i = 0; i < addressArray.length; i++) {
+            if (addressArray[i].types[0] && 'administrative_area_level_2' === addressArray[i].types[0]) {
+                city = addressArray[i].long_name;
+                return city;
+            }
+        }
+      };
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+      getArea = (addressArray) => {
+        let area = '';
+        for (let i = 0; i < addressArray.length; i++) {
+            if (addressArray[i].types[0]) {
+                for (let j = 0; j < addressArray[i].types.length; j++) {
+                    if ('sublocality_level_1' === addressArray[i].types[j] || 'locality' === addressArray[i].types[j]) {
+                        area = addressArray[i].long_name;
+                        return area;
+                    }
+                }
+            }
+        }
+      };
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+      getState = (addressArray) => {
+        let state = '';
+        for (let i = 0; i < addressArray.length; i++) {
+            for (let i = 0; i < addressArray.length; i++) {
+                if (addressArray[i].types[0] && 'administrative_area_level_1' === addressArray[i].types[0]) {
+                    state = addressArray[i].long_name;
+                    return state;
+                }
+            }
+        }
+      };
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      onMarkerDragEnd = (event) => {
+        let newLat = event.latLng.lat(),
+            newLng = event.latLng.lng();
+
+        Geocode.fromLatLng(newLat, newLng).then(
+            response => {
+                const address = response.results[0].formatted_address,
+                    addressArray = response.results[0].address_components,
+                    city = this.getCity(addressArray),
+                    area = this.getArea(addressArray),
+                    state = this.getState(addressArray);
+                this.setState({
+                    address: (address) ? address : '',
+                    area: (area) ? area : '',
+                    city: (city) ? city : '',
+                    state: (state) ? state : '',
+                    markerPosition: {
+                        lat: newLat,
+                        lng: newLng
+                    },
+                    mapPosition: {
+                        lat: newLat,
+                        lng: newLng
+                    },
+                })
+            },
+            error => {
+                console.error(error);
+            }
+        );
+      };
+
+
+  render() {
+    const MapWithAMarker = withScriptjs(withGoogleMap(props =>
+      <GoogleMap
+        defaultZoom={this.state.zoom}
+        defaultCenter={{ lat: this.state.mapPosition.lat, lng: this.state.mapPosition.lng }}
+      >
+      
+        <Marker
+          draggable={true}
+          onDragEnd={this.onMarkerDragEnd}
+          position={{ lat: this.state.markerPosition.lat, lng: this.state.markerPosition.lng}}
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+           <InfoWindow
+           position={{ lat: (this.state.markerPosition.lat + 0.0018), lng: this.state.markerPosition.lng }}
+           >
+          <div>Hello Me here</div>
+          </InfoWindow>
+        </Marker>  
+        
+      </GoogleMap>
+    ));
+    return (
+      <MapWithAMarker
+      googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPsKRXSoF9BZ9Sx0uXhtnMcx7osRa5OsI&v=3.exp&libraries=geometry,drawing,places"
+      loadingElement={<div style={{ height: `100%` }} />}
+      containerElement={<div style={{ height: `600px` }} />}
+      mapElement={<div style={{ height: `100%` }} />}
+    />
+    )
+  }
 }
+
+
+export default Home;
+
+
