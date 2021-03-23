@@ -4,6 +4,9 @@ import { compose, withProps } from "recompose"
 import {InfoWindow, withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
 import React, { Component } from 'react';
 import Geocode from "react-geocode";
+import { Descriptions } from 'antd';
+import Autocomplete from 'react-google-autocomplete';
+import { FcAndroidOs } from "react-icons/fc";
 import * as parkData from "./data/testing.json";
 
 
@@ -69,7 +72,7 @@ class Home extends React.Component {
               } else {
                   console.error("Geolocation is not supported by this browser!");
               }
-          };   
+          };
              
       getCity = (addressArray) => {
         let city = '';
@@ -139,35 +142,118 @@ class Home extends React.Component {
         );
       };
 
+    onChange = (event) => {
+        this.setState({ [event.target.name]: event.target.value });
+    };
+
+    onPlaceSelected = (place) => {
+        console.log('plc', place);
+        const address = place.formatted_address,
+            addressArray = place.address_components,
+            city = this.getCity(addressArray),
+            area = this.getArea(addressArray),
+            state = this.getState(addressArray),
+            latValue = place.geometry.location.lat(),
+            lngValue = place.geometry.location.lng();
+
+        console.log('latvalue', latValue)
+        console.log('lngValue', lngValue)
+
+        // Set these values in the state.
+        this.setState({
+            address: (address) ? address : '',
+            area: (area) ? area : '',
+            city: (city) ? city : '',
+            state: (state) ? state : '',
+            markerPosition: {
+                lat: latValue,
+                lng: lngValue
+            },
+            mapPosition: {
+                lat: latValue,
+                lng: lngValue
+            },
+        })
+    };
+
 
   render() {
     const MapWithAMarker = withScriptjs(withGoogleMap(props =>
       <GoogleMap
-        defaultZoom={this.state.zoom}
+        defaultZoom={15}
         defaultCenter={{ lat: this.state.mapPosition.lat, lng: this.state.mapPosition.lng }}
       >
       
-        <Marker
+         <Marker
           draggable={true}
           onDragEnd={this.onMarkerDragEnd}
           position={{ lat: this.state.markerPosition.lat, lng: this.state.markerPosition.lng}}
+          icon={<FcAndroidOs/>}
         >
            <InfoWindow
            position={{ lat: (this.state.markerPosition.lat + 0.0018), lng: this.state.markerPosition.lng }}
            >
           <div>Hello Me here</div>
           </InfoWindow>
-        </Marker>  
+        </Marker>
+          <Autocomplete
+              style={{
+                  width: '100%',
+                  height: '40px',
+                  paddingLeft: '16px',
+                  marginTop: '2px',
+                  marginBottom: '2rem'
+              }}
+              onPlaceSelected={this.onPlaceSelected}
+              types={['(regions)']}
+          />
+
+      {/*  {parkData.features.map(park => (*/}
+      {/*  <Marker*/}
+      {/*    key={park.properties.PARK_ID}*/}
+      {/*    position={{*/}
+      {/*      lat: park.geometry.coordinates[0],*/}
+      {/*      lng: park.geometry.coordinates[1]*/}
+      {/*    }}*/}
+      {/*    onClick={() => {*/}
+      {/*      setSelectedPark(park);*/}
+      {/*    }}*/}
+      {/*  >*/}
+      {/*      <InfoWindow*/}
+      {/*      key={park.properties.PARK_ID}*/}
+      {/*      position={{ lat:park.geometry.coordinates[0], lng: park.geometry.coordinates[1] }}*/}
+      {/*      >*/}
+      {/*     <div>Hello Me here</div>*/}
+      {/*     </InfoWindow>*/}
+      {/*      </Marker>*/}
+      {/*  */}
+      {/*))}*/}
+      {/* {
+          parkData.features.map(park=>(
+            
+          ))
+      } */}
+      
         
       </GoogleMap>
     ));
     return (
+        <div style={{ padding: '1rem', margin: '0 auto', maxWidth: 1000 }}>
+
+            <Descriptions bordered>
+                <Descriptions.Item label="City">{this.state.city}</Descriptions.Item>
+                <Descriptions.Item label="Area">{this.state.area}</Descriptions.Item>
+                <Descriptions.Item label="State">{this.state.state}</Descriptions.Item>
+                <Descriptions.Item label="Address">{this.state.address}</Descriptions.Item>
+            </Descriptions>
+
       <MapWithAMarker
       googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPsKRXSoF9BZ9Sx0uXhtnMcx7osRa5OsI&v=3.exp&libraries=geometry,drawing,places"
       loadingElement={<div style={{ height: `100%` }} />}
-      containerElement={<div style={{ height: `600px` }} />}
+      containerElement={<div style={{ height: this.state.height }} />}
       mapElement={<div style={{ height: `100%` }} />}
     />
+        </div>
     )
   }
 }

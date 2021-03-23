@@ -28,8 +28,41 @@
             "geometry": {
                 "type": "Point",
                 "coordinates": [
-                    104.990967,
-                    12.56567
+                    12.565679,
+                    104.990967
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "PARK_ID": 961,
+                "FACILITYID": 28014,
+                "NAME": "Bearbrook Skateboard Park",
+                "NAME_FR": "Planchodrome Bearbrook",
+                "ADDRESS": "8720 Russell Road",
+                "ADDRESS_FR": "8720, chemin Russell",
+                "FACILITY_T": "flat",
+                "FACILITY_1": "plat",
+                "ACCESSCTRL": "no/non",
+                "ACCESSIBLE": "no/non",
+                "OPEN": null,
+                "NOTES": "Outdoor",
+                "MODIFIED_D": "2018/01/18",
+                "CREATED_DA": null,
+                "FACILITY": "Neighbourhood : smaller size facility to service population of 10,000 or less",
+                "FACILITY_F": "De voisinage : petite installation assurant des services à 10 000 résidents ou moins.",
+                "DESCRIPTIO": "Flat asphalt surface, 5 components",
+                "DESCRIPT_1": "Surface d'asphalte plane, 5 modules",
+                "PICTURE_LI": null,
+                "PICTURE_DE": null,
+                "PICTURE__1": null
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    11.556374,
+                    104.928207
                 ]
             }
         }
